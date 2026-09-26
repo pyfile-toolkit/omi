@@ -1,26 +1,3 @@
-# Convert a memory-list export to CSV
-
-Use this recipe to review memory metadata and content in a spreadsheet. It reads
-a saved JSON export, makes no network requests, and writes one CSV file. You
-need Python 3.10+ and an authenticated `omi-cli` for the initial export.
-
-Export up to 500 memories:
-
-```sh
-omi --json memory list --limit 500 --offset 0 > memories.json
-```
-
-Check that the command succeeded before converting the file. This is one page,
-not a complete-account backup. To retrieve another page, increase `--offset`
-by 500 and use a different filename. Changes to the account between requests
-can affect offset pagination; this recipe does not promise a consistent
-snapshot.
-
-Save the following as `memories_to_csv.py` (the same script is kept next to
-this recipe as [`memories_to_csv.py`](memories_to_csv.py) and covered by
-`tests/test_memories_to_csv.py`):
-
-```python
 import csv
 import io
 import json
@@ -145,21 +122,3 @@ if __name__ == "__main__":
     except (OSError, ValueError) as exc:
         sys.exit(f"CSV export failed: {exc}")
     print(f"{written} memory row(s) written, {categories} category value(s), {undated} without a timestamp")
-```
-
-Run the converter:
-
-```sh
-python memories_to_csv.py memories.json memories.csv
-```
-
-Import the result as UTF-8, comma-delimited text in Excel or another
-spreadsheet application. The converter preserves complete IDs, accents, quoted
-text and embedded newlines. Rows are sorted by timestamp, then by ID, so two
-exports of the same page compare directly; rows without a timestamp sort last
-and are counted in the summary line. Missing fields become empty cells; an
-empty list produces the column header only. It refuses to overwrite an
-existing destination, and a failed write leaves no partial file behind. Treat
-the exported file as private memory data. For exact unmodified values, retain
-the source JSON; the CSV adds an apostrophe to common formula-like values to
-make their intended text interpretation explicit.
